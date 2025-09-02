@@ -1,6 +1,10 @@
 import os
 import random
-import msvcrt
+try:
+    import msvcrt
+    WINDOWS_INPUT = True
+except ImportError:
+    WINDOWS_INPUT = False
 import time
 
 # Game settings
@@ -16,13 +20,17 @@ MOUSE_ICON = '🐭'
 MOUSE_COUNT = 3
 # Use a fullwidth space character for matching width (works in Windows console with monospace fonts)
 EMPTY_ICON = '　'  # U+3000 Ideographic space, 2-char wide
+WALL_ICON = '█'   # Solid block for walls
 
 def clear_screen():
     os.system('cls')
 
 def print_grid(cat_pos, fish_positions, dog_pos, mouse_positions):
+    # Print top wall
+    print('█' * (GRID_WIDTH + 2))
+    
     for y in range(GRID_HEIGHT):
-        row = ''
+        row = '█'  # Left wall
         for x in range(GRID_WIDTH):
             if (x, y) == cat_pos:
                 row += CAT_ICON
@@ -34,7 +42,11 @@ def print_grid(cat_pos, fish_positions, dog_pos, mouse_positions):
                 row += FISH_ICON
             else:
                 row += EMPTY_ICON
+        row += '█'  # Right wall
         print(row)
+    
+    # Print bottom wall
+    print('█' * (GRID_WIDTH + 2))
 
 def get_random_empty_position(cat_pos, fish_positions, extra_positions=None):
     if extra_positions is None:
@@ -90,6 +102,25 @@ def move_dog_towards_cat(dog_pos, cat_pos, fish_positions):
     return (new_x, new_y)
 
 def main():
+    if not WINDOWS_INPUT:
+        print("Note: This game requires Windows for keyboard input (msvcrt module).")
+        print("Running in demo mode to show the grid with realistic walls...")
+        
+        # Demo mode - show a sample game state
+        cat_pos = (GRID_WIDTH // 2, GRID_HEIGHT // 2)
+        fish_positions = set()
+        for i in range(FISH_COUNT):
+            fish_positions.add((i * 3 % GRID_WIDTH, i * 2 % GRID_HEIGHT))
+        mouse_positions = set()
+        for i in range(MOUSE_COUNT):
+            mouse_positions.add(((i * 5 + 2) % GRID_WIDTH, (i * 3 + 1) % GRID_HEIGHT))
+        dog_pos = (5, 5)
+        
+        print(f'Grid size: {GRID_WIDTH} x {GRID_HEIGHT}')
+        print('Realistic walls around the perimeter:')
+        print_grid(cat_pos, fish_positions, dog_pos, mouse_positions)
+        return
+    
     cat_pos = (GRID_WIDTH // 2, GRID_HEIGHT // 2)
     fish_positions = set()
     for _ in range(FISH_COUNT):
